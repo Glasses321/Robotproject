@@ -1,0 +1,124 @@
+import lejos.hardware.BrickFinder;
+import lejos.hardware.Keys;
+import lejos.hardware.ev3.EV3;
+import lejos.hardware.lcd.TextLCD;
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.port.MotorPort;
+import lejos.hardware.port.SensorPort;
+import lejos.hardware.sensor.EV3ColorSensor;
+import lejos.hardware.sensor.EV3TouchSensor;
+import lejos.hardware.sensor.SensorMode;
+import lejos.robotics.Color;
+import lejos.robotics.RegulatedMotor;
+
+public class LineFollower {
+
+public static void main(String[] args) {
+		final EV3 ev3 = (EV3) BrickFinder.getLocal();
+		TextLCD lcd = ev3.getTextLCD();
+		Keys keys = ev3.getKeys();
+//		Audio audio = ev3.getAudio();
+		
+		//Color sensor
+		EV3ColorSensor colorSensor = new EV3ColorSensor(SensorPort.S3);
+		SensorMode color = colorSensor.getRGBMode();
+		float[] colorSample = new float[color.sampleSize()];
+		
+//		playMessage(audio);
+//
+//		EV3TouchSensor touchSensor = new EV3TouchSensor(SensorPort.S1);
+//		SensorMode touch = touchSensor.getTouchMode();
+//		float[] sample = new float[touch.sampleSize()];
+
+		RegulatedMotor mA, mB;
+		mA = new EV3LargeRegulatedMotor(MotorPort.A);
+		mB = new EV3LargeRegulatedMotor(MotorPort.B);
+//		mC = new EV3LargeRegulatedMotor(MotorPort.C);
+		mB.setSpeed(120);// 2 RPM
+		mA.setSpeed(120);
+		
+		long startTime = System.currentTimeMillis();
+		long duration;
+		int lastColorId = Color.NONE;
+
+//		for (int i = 0; i < 4; i++) {
+
+			// go forward
+			mB.startSynchronization();
+			mB.forward();
+			mB.endSynchronization();
+
+			// go forward while reflecting
+			do {
+				duration = System.currentTimeMillis() - startTime;
+//				touch.fetchSample(sample, 0);
+				color.fetchSample(colorSample, 0);
+				lcd.drawString("" + colorSample[0], 0, 3);
+				lcd.drawString("" + colorSample[1], 0, 4);
+				lcd.drawString("" + colorSample[2], 0, 5);
+			} while (duration < 60000 && mB.isMoving() && mA.isMoving()
+					&& isReflecting(colorSample));
+			//evt. reflectsColor in while toevoegen
+			mB.startSynchronization();
+			mB.stop();
+			mA.stop();
+			mB.endSynchronization();
+			
+			//Seek the red line 
+//			seekRed();
+
+//			// go back
+//			mB.startSynchronization();
+//			mB.backward();
+//			mC.backward();
+//			mB.endSynchronization();
+//
+//			// turn back
+//			mB.startSynchronization();
+//			mB.rotate(1000, true);
+//			mC.rotate(-1000, true);
+//			mB.endSynchronization();
+//			while (mB.isMoving() && mC.isMoving())
+//				Thread.yield();
+
+//		}
+
+		mA.close();
+		mB.close();
+
+		// Delay.msDelay(1000);
+		// mB.stop();
+		// mC.stop(); 
+		// mB.rotateTo(360);
+		// mB.rotate(-720, true);
+		// while (mB.isMoving())
+		// Thread.yield();
+		// angle = mB.getTachoCount();
+		// lcd.drawInt(angle, 0, 1);
+		//
+		// mA.rotateTo(-100, true);
+		// do{
+		// touch.fetchSample(sample, 0);
+		// } while (mA.isMoving() && sample[0] == 0);
+		// mA.stop();
+		//
+		// angle = mA.getTachoCount(); //  should be -360
+		// lcd.drawInt(angle, 0, 2);
+		// lcd.drawInt((int)duration, 0, 1);
+		// keys.waitForAnyEvent();
+		
+//		getColor(lcd, color, colorSample);
+//		keys.waitForAnyPress();
+	}
+private static boolean isReflecting(float[] colorSample){
+	return colorSample[0] > 0.170 
+			|| colorSample[1] > 0.170 
+			|| colorSample[2] > 0.235;
+	}
+//
+//private static boolean isRed(float[] colorSample){
+//	return colorSample[0] > 0.015 
+//			|| colorSample[1] > 0.015 
+//			|| colorSample[2] > 0.015;
+//	}
+}
